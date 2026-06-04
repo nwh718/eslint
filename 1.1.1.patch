@@ -1,73 +1,170 @@
 diff --git a/1.1.1.patch b/1.1.1.patch
-index 0d64cba20..e69de29bb 100644
+index 0537f5461..e69de29bb 100644
 --- a/1.1.1.patch
 +++ b/1.1.1.patch
-@@ -1,26 +0,0 @@
--diff --git a/1.patch b/1.patch
+@@ -1,73 +0,0 @@
+-diff --git a/1.1.1.patch b/1.1.1.patch
+-index 0d64cba20..e69de29bb 100644
+---- a/1.1.1.patch
+-+++ b/1.1.1.patch
+-@@ -1,26 +0,0 @@
+--diff --git a/1.patch b/1.patch
+--deleted file mode 100644
+--index e69de29bb..000000000
+--diff --git a/lib/linter/code-path-analysis/code-path-state.js b/lib/linter/code-path-analysis/code-path-state.js
+--index 7621671be..058a3a2c2 100644
+----- a/lib/linter/code-path-analysis/code-path-state.js
+--+++ b/lib/linter/code-path-analysis/code-path-state.js
+--@@ -1742,12 +1742,13 @@ class CodePathState {
+-- 				);
+-- 			}
+-- 
+---			segments.push(
+---				CodePathSegment.newNext(
+---					this.idGenerator.next(),
+---					prevSegsOfLeavingSegment,
+---				),
+--+			const segment = CodePathSegment.newNext(
+--+				this.idGenerator.next(),
+--+				prevSegsOfLeavingSegment,
+-- 			);
+--+
+--+			segments.push(segment);
+--+			CodePathSegment.markUsed(segment);
+-- 		}
+-- 
+-- 		this.pushForkContext(true);
+-diff --git a/1.1.2.patch b/1.1.2.patch
 -deleted file mode 100644
--index e69de29bb..000000000
+-index a874a3e7c..000000000
+---- a/1.1.2.patch
+-+++ /dev/null
+-@@ -1,18 +0,0 @@
+--diff --git a/lib/linter/code-path-analysis/code-path-state.js b/lib/linter/code-path-analysis/code-path-state.js
+--index 7621671be..3d258f576 100644
+----- a/lib/linter/code-path-analysis/code-path-state.js
+--+++ b/lib/linter/code-path-analysis/code-path-state.js
+--@@ -1691,11 +1691,11 @@ class CodePathState {
+-- 
+-- 		// Update state.
+-- 		if (context.position === "catch") {
+--+			context.lastOfCatchIsReachable = forkContext.reachable;
+--+
+-- 			// Merges two paths from the `try` block and `catch` block.
+-- 			this.popForkContext();
+-- 			forkContext = this.forkContext;
+---
+---			context.lastOfCatchIsReachable = forkContext.reachable;
+-- 		} else {
+-- 			context.lastOfTryIsReachable = forkContext.reachable;
+-- 		}
 -diff --git a/lib/linter/code-path-analysis/code-path-state.js b/lib/linter/code-path-analysis/code-path-state.js
--index 7621671be..058a3a2c2 100644
----- a/lib/linter/code-path-analysis/code-path-state.js
--+++ b/lib/linter/code-path-analysis/code-path-state.js
--@@ -1742,12 +1742,13 @@ class CodePathState {
-- 				);
-- 			}
-- 
---			segments.push(
---				CodePathSegment.newNext(
---					this.idGenerator.next(),
---					prevSegsOfLeavingSegment,
---				),
--+			const segment = CodePathSegment.newNext(
--+				this.idGenerator.next(),
--+				prevSegsOfLeavingSegment,
-- 			);
--+
--+			segments.push(segment);
--+			CodePathSegment.markUsed(segment);
-- 		}
-- 
-- 		this.pushForkContext(true);
-diff --git a/1.1.2.patch b/1.1.2.patch
-deleted file mode 100644
-index a874a3e7c..000000000
---- a/1.1.2.patch
-+++ /dev/null
-@@ -1,18 +0,0 @@
--diff --git a/lib/linter/code-path-analysis/code-path-state.js b/lib/linter/code-path-analysis/code-path-state.js
--index 7621671be..3d258f576 100644
+-index 3d258f576..7621671be 100644
 ---- a/lib/linter/code-path-analysis/code-path-state.js
 -+++ b/lib/linter/code-path-analysis/code-path-state.js
 -@@ -1691,11 +1691,11 @@ class CodePathState {
 - 
 - 		// Update state.
 - 		if (context.position === "catch") {
--+			context.lastOfCatchIsReachable = forkContext.reachable;
--+
+--			context.lastOfCatchIsReachable = forkContext.reachable;
+--
 - 			// Merges two paths from the `try` block and `catch` block.
 - 			this.popForkContext();
 - 			forkContext = this.forkContext;
---
---			context.lastOfCatchIsReachable = forkContext.reachable;
+-+
+-+			context.lastOfCatchIsReachable = forkContext.reachable;
 - 		} else {
 - 			context.lastOfTryIsReachable = forkContext.reachable;
 - 		}
-diff --git a/lib/linter/code-path-analysis/code-path-state.js b/lib/linter/code-path-analysis/code-path-state.js
-index 3d258f576..7621671be 100644
---- a/lib/linter/code-path-analysis/code-path-state.js
-+++ b/lib/linter/code-path-analysis/code-path-state.js
-@@ -1691,11 +1691,11 @@ class CodePathState {
+diff --git a/lib/rules/utils/code-path-utils.js b/lib/rules/utils/code-path-utils.js
+index 5646466f7..a6797eaec 100644
+--- a/lib/rules/utils/code-path-utils.js
++++ b/lib/rules/utils/code-path-utils.js
+@@ -5,15 +5,38 @@
+ "use strict";
  
- 		// Update state.
- 		if (context.position === "catch") {
--			context.lastOfCatchIsReachable = forkContext.reachable;
--
- 			// Merges two paths from the `try` block and `catch` block.
- 			this.popForkContext();
- 			forkContext = this.forkContext;
+ /**
+- * Checks all segments in a set and returns true if any are reachable.
++ * Checks all segments in a set and returns true if any are reachable,
++ * considering their previous segments to handle cases like try/catch blocks.
+  * @param {Set<CodePathSegment>} segments The segments to check.
+  * @returns {boolean} `true` if any segment is reachable; `false` otherwise.
+  */
+ function isAnySegmentReachable(segments) {
+-	for (const segment of segments) {
++	const checked = new Set();
 +
-+			context.lastOfCatchIsReachable = forkContext.reachable;
- 		} else {
- 			context.lastOfTryIsReachable = forkContext.reachable;
++	function checkSegment(segment) {
++		if (checked.has(segment)) {
++			return false;
++		}
++		checked.add(segment);
++
+ 		if (segment.reachable) {
+ 			return true;
  		}
++
++		// Check all previous segments for reachability
++		for (const prev of segment.allPrevSegments) {
++			if (checkSegment(prev)) {
++				return true;
++			}
++		}
++
++		return false;
++	}
++
++	for (const segment of segments) {
++		if (checkSegment(segment)) {
++			return true;
++		}
+ 	}
+ 
+ 	return false;
+diff --git a/test-divide.js b/test-divide.js
+deleted file mode 100644
+index 81e80472a..000000000
+--- a/test-divide.js
++++ /dev/null
+@@ -1,10 +0,0 @@
+-const { divide } = require('./utils/math');
+-
+-try {
+-    console.log('Testing divide(10, 0):');
+-    const result = divide(10, 0);
+-    console.log('Result:', result);
+-} catch (error) {
+-    console.log('Error caught:', error.message);
+-    console.log('Expected: "Error: division by zero"');
+-}
+diff --git a/utils/math.js b/utils/math.js
+deleted file mode 100644
+index db52d7eb3..000000000
+--- a/utils/math.js
++++ /dev/null
+@@ -1,25 +0,0 @@
+-function add(a, b) {
+-    return a + b;
+-}
+-
+-function subtract(a, b) {
+-    return a - b;
+-}
+-
+-function multiply(a, b) {
+-    return a * b;
+-}
+-
+-function divide(a, b) {
+-    if (b === 0) {
+-        return "Error: division by zero";
+-    }
+-    return a / b;
+-}
+-
+-module.exports = {
+-    add,
+-    subtract,
+-    multiply,
+-    divide
+-};
