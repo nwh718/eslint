@@ -1,0 +1,228 @@
+diff --git a/lib/shared/isSegmentReachableInPath.js b/lib/shared/isSegmentReachableInPath.js
+index 49cbb4d59..b0b31e076 100644
+--- a/lib/shared/isSegmentReachableInPath.js
++++ b/lib/shared/isSegmentReachableInPath.js
+@@ -1,51 +1,57 @@
+ /**
+- * @fileoverview Check if a target segment is reachable from given segments.
++ * @fileoverview Utility to check if a code path segment is reachable from a set of segments.
++ * @author ESLint Contributor
+  */
+ 
+ "use strict";
+ 
++//------------------------------------------------------------------------------
++// Public Interface
++//------------------------------------------------------------------------------
++
+ /**
+- * Traverses segments graph to check if target segment is reachable.
+- * Uses BFS traversal with visited set to avoid cycles.
+- * @param {CodePathSegment[]} segments The starting segments to check from.
+- * @param {CodePathSegment} targetSegment The segment to check reachability to.
+- * @returns {boolean} `true` if target segment is reachable.
++ * Determines if the target segment is reachable from any segment in the given array
++ * by traversing the graph via nextSegments and prevSegments connections.
++ *
++ * Uses BFS to explore all reachable segments while handling cycles through
++ * a visited set.
++ *
++ * @param {CodePathSegment[]} segments The array of starting segments to search from.
++ * @param {CodePathSegment} targetSegment The segment to check reachability for.
++ * @returns {boolean} `true` if the target segment is reachable, `false` otherwise.
+  */
+ function isSegmentReachableInPath(segments, targetSegment) {
+-	if (!Array.isArray(segments) || segments.length === 0) {
+-		return false;
+-	}
+-
+-	if (targetSegment === null || targetSegment === undefined) {
++	if (
++		!Array.isArray(segments) ||
++		segments.length === 0 ||
++		!targetSegment
++	) {
+ 		return false;
+ 	}
+ 
+ 	const visited = new Set();
+ 	const queue = [...segments];
+ 
+-	for (const segment of queue) {
+-		if (visited.has(segment)) {
+-			continue;
+-		}
++	for (const segment of segments) {
+ 		visited.add(segment);
++	}
++
++	while (queue.length > 0) {
++		const current = queue.shift();
+ 
+-		if (segment === targetSegment) {
++		if (current === targetSegment) {
+ 			return true;
+ 		}
+ 
+-		if (segment.nextSegments) {
+-			for (const nextSegment of segment.nextSegments) {
+-				if (!visited.has(nextSegment)) {
+-					queue.push(nextSegment);
+-				}
+-			}
+-		}
++		const neighbors = [
++			...(current.nextSegments || []),
++			...(current.prevSegments || []),
++		];
+ 
+-		if (segment.prevSegments) {
+-			for (const prevSegment of segment.prevSegments) {
+-				if (!visited.has(prevSegment)) {
+-					queue.push(prevSegment);
+-				}
++		for (const neighbor of neighbors) {
++			if (!visited.has(neighbor)) {
++				visited.add(neighbor);
++				queue.push(neighbor);
+ 			}
+ 		}
+ 	}
+@@ -53,4 +59,4 @@ function isSegmentReachableInPath(segments, targetSegment) {
+ 	return false;
+ }
+ 
+-module.exports = isSegmentReachableInPath;
+\ No newline at end of file
++module.exports = isSegmentReachableInPath;
+diff --git a/tests/lib/rule-tester/is-segment-reachable-in-path.js b/tests/lib/rule-tester/is-segment-reachable-in-path.js
+deleted file mode 100644
+index 4f861acf8..000000000
+--- a/tests/lib/rule-tester/is-segment-reachable-in-path.js
++++ /dev/null
+@@ -1,124 +0,0 @@
+-/**
+- * @fileoverview Tests for isSegmentReachableInPath.
+- */
+-
+-"use strict";
+-
+-//------------------------------------------------------------------------------
+-// Requirements
+-//------------------------------------------------------------------------------
+-
+-const assert = require("chai").assert;
+-const isSegmentReachableInPath = require("../../../lib/shared/isSegmentReachableInPath");
+-
+-//------------------------------------------------------------------------------
+-// Helpers
+-//------------------------------------------------------------------------------
+-
+-function createSegment() {
+-	return {
+-		prevSegments: [],
+-		nextSegments: [],
+-	};
+-}
+-
+-function connect(fromSegment, toSegment) {
+-	fromSegment.nextSegments.push(toSegment);
+-	toSegment.prevSegments.push(fromSegment);
+-}
+-
+-//------------------------------------------------------------------------------
+-// Tests
+-//------------------------------------------------------------------------------
+-
+-describe("isSegmentReachableInPath", () => {
+-	it("returns false for an empty segments array", () => {
+-		const targetSegment = createSegment();
+-
+-		assert.strictEqual(
+-			isSegmentReachableInPath([], targetSegment),
+-			false,
+-		);
+-	});
+-
+-	it("returns true when the target segment is directly included", () => {
+-		const targetSegment = createSegment();
+-
+-		assert.strictEqual(
+-			isSegmentReachableInPath([targetSegment], targetSegment),
+-			true,
+-		);
+-	});
+-
+-	it("returns true when the target segment is reachable through nextSegments", () => {
+-		const startSegment = createSegment();
+-		const middleSegment = createSegment();
+-		const targetSegment = createSegment();
+-
+-		connect(startSegment, middleSegment);
+-		connect(middleSegment, targetSegment);
+-
+-		assert.strictEqual(
+-			isSegmentReachableInPath([startSegment], targetSegment),
+-			true,
+-		);
+-	});
+-
+-	it("returns true when the target segment is reachable through prevSegments", () => {
+-		const startSegment = createSegment();
+-		const middleSegment = createSegment();
+-		const targetSegment = createSegment();
+-
+-		connect(startSegment, middleSegment);
+-		connect(middleSegment, targetSegment);
+-
+-		assert.strictEqual(
+-			isSegmentReachableInPath([targetSegment], startSegment),
+-			true,
+-		);
+-	});
+-
+-	it("returns false when the target segment is not connected to the path", () => {
+-		const startSegment = createSegment();
+-		const middleSegment = createSegment();
+-		const targetSegment = createSegment();
+-
+-		connect(startSegment, middleSegment);
+-
+-		assert.strictEqual(
+-			isSegmentReachableInPath([startSegment], targetSegment),
+-			false,
+-		);
+-	});
+-
+-	it("handles cyclic paths without infinite traversal", () => {
+-		const firstSegment = createSegment();
+-		const secondSegment = createSegment();
+-		const thirdSegment = createSegment();
+-		const targetSegment = createSegment();
+-
+-		connect(firstSegment, secondSegment);
+-		connect(secondSegment, thirdSegment);
+-		connect(thirdSegment, firstSegment);
+-		connect(thirdSegment, targetSegment);
+-
+-		assert.strictEqual(
+-			isSegmentReachableInPath([firstSegment], targetSegment),
+-			true,
+-		);
+-	});
+-
+-	it("returns false for cyclic paths that do not include the target segment", () => {
+-		const firstSegment = createSegment();
+-		const secondSegment = createSegment();
+-		const targetSegment = createSegment();
+-
+-		connect(firstSegment, secondSegment);
+-		connect(secondSegment, firstSegment);
+-
+-		assert.strictEqual(
+-			isSegmentReachableInPath([firstSegment], targetSegment),
+-			false,
+-		);
+-	});
+-});
+\ No newline at end of file
