@@ -1,0 +1,98 @@
+diff --git a/lib/rules/utils/code-path-utils.js b/lib/rules/utils/code-path-utils.js
+index edd7bf032..5646466f7 100644
+--- a/lib/rules/utils/code-path-utils.js
++++ b/lib/rules/utils/code-path-utils.js
+@@ -5,43 +5,13 @@
+ "use strict";
+ 
+ /**
+- * Checks all segments in a set and returns true if any are reachable,
+- * considering their previous segments to handle cases like try/catch blocks
+- * where the catch segment itself may be unreachable but its predecessor
+- * in the try block is reachable.
++ * Checks all segments in a set and returns true if any are reachable.
+  * @param {Set<CodePathSegment>} segments The segments to check.
+  * @returns {boolean} `true` if any segment is reachable; `false` otherwise.
+  */
+ function isAnySegmentReachable(segments) {
+-	const checked = new Set();
+-
+-	/**
+-	 * Recursively checks if a segment or any of its previous segments
+-	 * in the code path chain is reachable.
+-	 * @param {CodePathSegment} segment The segment to check.
+-	 * @returns {boolean} `true` if reachable; `false` otherwise.
+-	 */
+-	function checkSegment(segment) {
+-		if (checked.has(segment)) {
+-			return false;
+-		}
+-		checked.add(segment);
+-
+-		if (segment.reachable) {
+-			return true;
+-		}
+-
+-		for (const prevSegment of segment.allPrevSegments) {
+-			if (checkSegment(prevSegment)) {
+-				return true;
+-			}
+-		}
+-
+-		return false;
+-	}
+-
+ 	for (const segment of segments) {
+-		if (checkSegment(segment)) {
++		if (segment.reachable) {
+ 			return true;
+ 		}
+ 	}
+diff --git a/tests/lib/rules/utils/code-path-utils.js b/tests/lib/rules/utils/code-path-utils.js
+index f5c94c6a9..9539ecb0b 100644
+--- a/tests/lib/rules/utils/code-path-utils.js
++++ b/tests/lib/rules/utils/code-path-utils.js
+@@ -53,43 +53,4 @@ describe("isAnySegmentReachable", () => {
+ 
+ 		assert.strictEqual(isAnySegmentReachable(segments), true);
+ 	});
+-
+-	it("should return true when a segment is unreachable but has a reachable previous segment (catch block scenario)", () => {
+-		const reachablePrev = { reachable: true, allPrevSegments: [] };
+-		const catchSegment = { reachable: false, allPrevSegments: [reachablePrev] };
+-
+-		const segments = new Set([catchSegment]);
+-
+-		assert.strictEqual(isAnySegmentReachable(segments), true);
+-	});
+-
+-	it("should return false when a segment is unreachable and all previous segments are also unreachable", () => {
+-		const unreachablePrev = { reachable: false, allPrevSegments: [] };
+-		const catchSegment = { reachable: false, allPrevSegments: [unreachablePrev] };
+-
+-		const segments = new Set([catchSegment]);
+-
+-		assert.strictEqual(isAnySegmentReachable(segments), false);
+-	});
+-
+-	it("should return true when chain of allPrevSegments eventually reaches a reachable segment", () => {
+-		const reachable = { reachable: true, allPrevSegments: [] };
+-		const mid = { reachable: false, allPrevSegments: [reachable] };
+-		const leaf = { reachable: false, allPrevSegments: [mid] };
+-
+-		const segments = new Set([leaf]);
+-
+-		assert.strictEqual(isAnySegmentReachable(segments), true);
+-	});
+-
+-	it("should not loop infinitely when segments have circular allPrevSegments references", () => {
+-		const a = { reachable: false, allPrevSegments: [] };
+-		const b = { reachable: false, allPrevSegments: [a] };
+-
+-		a.allPrevSegments = [b];
+-
+-		const segments = new Set([a]);
+-
+-		assert.strictEqual(isAnySegmentReachable(segments), false);
+-	});
+ });
