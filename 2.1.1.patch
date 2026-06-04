@@ -1,12 +1,4 @@
-diff --git a/1.1.1.patch b/1.1.1.patch
-index 0537f5461..e69de29bb 100644
---- a/1.1.1.patch
-+++ b/1.1.1.patch
-@@ -1,73 +0,0 @@
--diff --git a/1.1.1.patch b/1.1.1.patch
--index 0d64cba20..e69de29bb 100644
----- a/1.1.1.patch
--+++ b/1.1.1.patch
+
 -@@ -1,26 +0,0 @@
 --diff --git a/1.patch b/1.patch
 --deleted file mode 100644
