@@ -1,0 +1,45 @@
+diff --git a/lib/rules/utils/code-path-utils.js b/lib/rules/utils/code-path-utils.js
+index 5646466f7..ba59030c1 100644
+--- a/lib/rules/utils/code-path-utils.js
++++ b/lib/rules/utils/code-path-utils.js
+@@ -5,15 +5,38 @@
+ "use strict";
+ 
+ /**
+- * Checks all segments in a set and returns true if any are reachable.
++ * Checks all segments in a set and returns true if any are reachable,
++ * considering previous segments so exception-only paths such as `catch`
++ * blocks are treated as reachable when they originate from a reachable path.
+  * @param {Set<CodePathSegment>} segments The segments to check.
+  * @returns {boolean} `true` if any segment is reachable; `false` otherwise.
+  */
+ function isAnySegmentReachable(segments) {
+-	for (const segment of segments) {
++	const checked = new Set();
++
++	function checkSegment(segment) {
++		if (checked.has(segment)) {
++			return false;
++		}
++		checked.add(segment);
++
+ 		if (segment.reachable) {
+ 			return true;
+ 		}
++
++		for (const prevSegment of segment.allPrevSegments || []) {
++			if (checkSegment(prevSegment)) {
++				return true;
++			}
++		}
++
++		return false;
++	}
++
++	for (const segment of segments) {
++		if (checkSegment(segment)) {
++			return true;
++		}
+ 	}
+ 
+ 	return false;
