@@ -1,0 +1,166 @@
+diff --git a/lib/shared/is-segment-reachable-in-path.js b/lib/shared/is-segment-reachable-in-path.js
+deleted file mode 100644
+index 8f277ef6e..000000000
+--- a/lib/shared/is-segment-reachable-in-path.js
++++ /dev/null
+@@ -1,46 +0,0 @@
+-"use strict";
+-
+-/**
+- * @fileoverview Check if a target segment is reachable from given segments.
+- */
+-
+-/**
+- * Traverses segments graph to check if target segment is reachable.
+- * Uses BFS traversal with visited set to avoid cycles.
+- * @param {CodePathSegment[]} segments The starting segments to check from.
+- * @param {CodePathSegment} targetSegment The segment to check reachability to.
+- * @returns {boolean} `true` if target segment is reachable.
+- */
+-function isSegmentReachableInPath(segments, targetSegment) {
+-	if (!Array.isArray(segments) || segments.length === 0) {
+-		return false;
+-	}
+-
+-	if (targetSegment === null || targetSegment === undefined) {
+-		return false;
+-	}
+-
+-	const visited = new Set();
+-	const queue = [...segments];
+-
+-	for (const segment of queue) {
+-		if (visited.has(segment)) {
+-			continue;
+-		}
+-		visited.add(segment);
+-
+-		if (segment === targetSegment) {
+-			return true;
+-		}
+-
+-		for (const nextSegment of segment.nextSegments) {
+-			if (!visited.has(nextSegment)) {
+-				queue.push(nextSegment);
+-			}
+-		}
+-	}
+-
+-	return false;
+-}
+-
+-module.exports = isSegmentReachableInPath;
+diff --git a/tests/lib/shared/is-segment-reachable-in-path.js b/tests/lib/shared/is-segment-reachable-in-path.js
+deleted file mode 100644
+index 843c6e8d7..000000000
+--- a/tests/lib/shared/is-segment-reachable-in-path.js
++++ /dev/null
+@@ -1,108 +0,0 @@
+-"use strict";
+-
+-/**
+- * @fileoverview Tests for isSegmentReachableInPath.
+- */
+-
+-//------------------------------------------------------------------------------
+-// Requirements
+-//------------------------------------------------------------------------------
+-
+-const assert = require("chai").assert;
+-const CodePathSegment = require("../../../lib/linter/code-path-analysis/code-path-segment");
+-const isSegmentReachableInPath = require("../../../lib/shared/is-segment-reachable-in-path");
+-
+-//------------------------------------------------------------------------------
+-// Tests
+-//------------------------------------------------------------------------------
+-
+-describe("isSegmentReachableInPath", () => {
+-	describe("edge cases", () => {
+-		it("should return false for empty segments array", () => {
+-			const target = CodePathSegment.newRoot("target");
+-			assert.isFalse(isSegmentReachableInPath([], target));
+-		});
+-
+-		it("should return false when targetSegment is null", () => {
+-			const start = CodePathSegment.newRoot("start");
+-			assert.isFalse(isSegmentReachableInPath([start], null));
+-		});
+-
+-		it("should return false when targetSegment is undefined", () => {
+-			const start = CodePathSegment.newRoot("start");
+-			assert.isFalse(isSegmentReachableInPath([start], undefined));
+-		});
+-	});
+-
+-	describe("basic reachability", () => {
+-		it("should return true when target is in the starting segments", () => {
+-			const start1 = CodePathSegment.newRoot("start1");
+-			const target = CodePathSegment.newRoot("target");
+-			assert.isTrue(isSegmentReachableInPath([start1, target], target));
+-		});
+-
+-		it("should return true when target is directly next to a starting segment", () => {
+-			const start = CodePathSegment.newRoot("start");
+-			const target = CodePathSegment.newNext("target", [start]);
+-			CodePathSegment.markUsed(target);
+-			assert.isTrue(isSegmentReachableInPath([start], target));
+-		});
+-
+-		it("should return false when target is not reachable", () => {
+-			const start = CodePathSegment.newRoot("start");
+-			const unreachable = CodePathSegment.newNext("unreachable", [start]);
+-			CodePathSegment.markUsed(unreachable);
+-			const target = CodePathSegment.newRoot("target");
+-			assert.isFalse(isSegmentReachableInPath([start], target));
+-		});
+-	});
+-
+-	describe("multi-step paths", () => {
+-		it("should return true for multi-step reachable path", () => {
+-			const a = CodePathSegment.newRoot("a");
+-			const b = CodePathSegment.newNext("b", [a]);
+-			const c = CodePathSegment.newNext("c", [b]);
+-			const target = CodePathSegment.newNext("target", [c]);
+-			CodePathSegment.markUsed(b);
+-			CodePathSegment.markUsed(c);
+-			CodePathSegment.markUsed(target);
+-			assert.isTrue(isSegmentReachableInPath([a], target));
+-		});
+-	});
+-
+-	describe("branched paths", () => {
+-		it("should find target in one of multiple branches", () => {
+-			const root = CodePathSegment.newRoot("root");
+-			const branch1 = CodePathSegment.newNext("branch1", [root]);
+-			const branch2 = CodePathSegment.newNext("branch2", [root]);
+-			const target = CodePathSegment.newNext("target", [branch2]);
+-			CodePathSegment.markUsed(branch1);
+-			CodePathSegment.markUsed(branch2);
+-			CodePathSegment.markUsed(target);
+-			assert.isTrue(isSegmentReachableInPath([root], target));
+-		});
+-	});
+-
+-	describe("cyclic paths", () => {
+-		it("should handle cyclic paths without infinite loop", () => {
+-			const a = CodePathSegment.newRoot("a");
+-			const b = CodePathSegment.newNext("b", [a]);
+-			const c = CodePathSegment.newNext("c", [b]);
+-			const d = CodePathSegment.newNext("d", [c]);
+-			const e = CodePathSegment.newNext("e", [d]);
+-			CodePathSegment.markUsed(b);
+-			CodePathSegment.markUsed(c);
+-			CodePathSegment.markUsed(d);
+-			CodePathSegment.markUsed(e);
+-
+-			const cycleBack = CodePathSegment.newNext("cycleBack", [e]);
+-			cycleBack.allPrevSegments.push(b);
+-			CodePathSegment.markUsed(cycleBack);
+-
+-			const target = CodePathSegment.newNext("target", [d]);
+-			CodePathSegment.markUsed(target);
+-
+-			assert.isTrue(isSegmentReachableInPath([a], target));
+-		});
+-	});
+-});
