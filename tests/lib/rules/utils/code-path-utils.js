@@ -53,4 +53,43 @@ describe("isAnySegmentReachable", () => {
 
 		assert.strictEqual(isAnySegmentReachable(segments), true);
 	});
+
+	it("should return true when a segment is unreachable but has a reachable previous segment (catch block scenario)", () => {
+		const reachablePrev = { reachable: true, allPrevSegments: [] };
+		const catchSegment = { reachable: false, allPrevSegments: [reachablePrev] };
+
+		const segments = new Set([catchSegment]);
+
+		assert.strictEqual(isAnySegmentReachable(segments), true);
+	});
+
+	it("should return false when a segment is unreachable and all previous segments are also unreachable", () => {
+		const unreachablePrev = { reachable: false, allPrevSegments: [] };
+		const catchSegment = { reachable: false, allPrevSegments: [unreachablePrev] };
+
+		const segments = new Set([catchSegment]);
+
+		assert.strictEqual(isAnySegmentReachable(segments), false);
+	});
+
+	it("should return true when chain of allPrevSegments eventually reaches a reachable segment", () => {
+		const reachable = { reachable: true, allPrevSegments: [] };
+		const mid = { reachable: false, allPrevSegments: [reachable] };
+		const leaf = { reachable: false, allPrevSegments: [mid] };
+
+		const segments = new Set([leaf]);
+
+		assert.strictEqual(isAnySegmentReachable(segments), true);
+	});
+
+	it("should not loop infinitely when segments have circular allPrevSegments references", () => {
+		const a = { reachable: false, allPrevSegments: [] };
+		const b = { reachable: false, allPrevSegments: [a] };
+
+		a.allPrevSegments = [b];
+
+		const segments = new Set([a]);
+
+		assert.strictEqual(isAnySegmentReachable(segments), false);
+	});
 });
