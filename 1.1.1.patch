@@ -1,26 +1,73 @@
-diff --git a/1.patch b/1.patch
+diff --git a/1.1.1.patch b/1.1.1.patch
+index 0d64cba20..e69de29bb 100644
+--- a/1.1.1.patch
++++ b/1.1.1.patch
+@@ -1,26 +0,0 @@
+-diff --git a/1.patch b/1.patch
+-deleted file mode 100644
+-index e69de29bb..000000000
+-diff --git a/lib/linter/code-path-analysis/code-path-state.js b/lib/linter/code-path-analysis/code-path-state.js
+-index 7621671be..058a3a2c2 100644
+---- a/lib/linter/code-path-analysis/code-path-state.js
+-+++ b/lib/linter/code-path-analysis/code-path-state.js
+-@@ -1742,12 +1742,13 @@ class CodePathState {
+- 				);
+- 			}
+- 
+--			segments.push(
+--				CodePathSegment.newNext(
+--					this.idGenerator.next(),
+--					prevSegsOfLeavingSegment,
+--				),
+-+			const segment = CodePathSegment.newNext(
+-+				this.idGenerator.next(),
+-+				prevSegsOfLeavingSegment,
+- 			);
+-+
+-+			segments.push(segment);
+-+			CodePathSegment.markUsed(segment);
+- 		}
+- 
+- 		this.pushForkContext(true);
+diff --git a/1.1.2.patch b/1.1.2.patch
 deleted file mode 100644
-index e69de29bb..000000000
+index a874a3e7c..000000000
+--- a/1.1.2.patch
++++ /dev/null
+@@ -1,18 +0,0 @@
+-diff --git a/lib/linter/code-path-analysis/code-path-state.js b/lib/linter/code-path-analysis/code-path-state.js
+-index 7621671be..3d258f576 100644
+---- a/lib/linter/code-path-analysis/code-path-state.js
+-+++ b/lib/linter/code-path-analysis/code-path-state.js
+-@@ -1691,11 +1691,11 @@ class CodePathState {
+- 
+- 		// Update state.
+- 		if (context.position === "catch") {
+-+			context.lastOfCatchIsReachable = forkContext.reachable;
+-+
+- 			// Merges two paths from the `try` block and `catch` block.
+- 			this.popForkContext();
+- 			forkContext = this.forkContext;
+--
+--			context.lastOfCatchIsReachable = forkContext.reachable;
+- 		} else {
+- 			context.lastOfTryIsReachable = forkContext.reachable;
+- 		}
 diff --git a/lib/linter/code-path-analysis/code-path-state.js b/lib/linter/code-path-analysis/code-path-state.js
-index 7621671be..058a3a2c2 100644
+index 3d258f576..7621671be 100644
 --- a/lib/linter/code-path-analysis/code-path-state.js
 +++ b/lib/linter/code-path-analysis/code-path-state.js
-@@ -1742,12 +1742,13 @@ class CodePathState {
- 				);
- 			}
+@@ -1691,11 +1691,11 @@ class CodePathState {
  
--			segments.push(
--				CodePathSegment.newNext(
--					this.idGenerator.next(),
--					prevSegsOfLeavingSegment,
--				),
-+			const segment = CodePathSegment.newNext(
-+				this.idGenerator.next(),
-+				prevSegsOfLeavingSegment,
- 			);
+ 		// Update state.
+ 		if (context.position === "catch") {
+-			context.lastOfCatchIsReachable = forkContext.reachable;
+-
+ 			// Merges two paths from the `try` block and `catch` block.
+ 			this.popForkContext();
+ 			forkContext = this.forkContext;
 +
-+			segments.push(segment);
-+			CodePathSegment.markUsed(segment);
++			context.lastOfCatchIsReachable = forkContext.reachable;
+ 		} else {
+ 			context.lastOfTryIsReachable = forkContext.reachable;
  		}
- 
- 		this.pushForkContext(true);
