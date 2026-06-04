@@ -1,0 +1,18 @@
+diff --git a/lib/linter/code-path-analysis/code-path-state.js b/lib/linter/code-path-analysis/code-path-state.js
+index 7621671be..3d258f576 100644
+--- a/lib/linter/code-path-analysis/code-path-state.js
++++ b/lib/linter/code-path-analysis/code-path-state.js
+@@ -1691,11 +1691,11 @@ class CodePathState {
+ 
+ 		// Update state.
+ 		if (context.position === "catch") {
++			context.lastOfCatchIsReachable = forkContext.reachable;
++
+ 			// Merges two paths from the `try` block and `catch` block.
+ 			this.popForkContext();
+ 			forkContext = this.forkContext;
+-
+-			context.lastOfCatchIsReachable = forkContext.reachable;
+ 		} else {
+ 			context.lastOfTryIsReachable = forkContext.reachable;
+ 		}

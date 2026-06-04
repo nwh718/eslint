@@ -1,0 +1,26 @@
+diff --git a/1.patch b/1.patch
+deleted file mode 100644
+index e69de29bb..000000000
+diff --git a/lib/linter/code-path-analysis/code-path-state.js b/lib/linter/code-path-analysis/code-path-state.js
+index 7621671be..058a3a2c2 100644
+--- a/lib/linter/code-path-analysis/code-path-state.js
++++ b/lib/linter/code-path-analysis/code-path-state.js
+@@ -1742,12 +1742,13 @@ class CodePathState {
+ 				);
+ 			}
+ 
+-			segments.push(
+-				CodePathSegment.newNext(
+-					this.idGenerator.next(),
+-					prevSegsOfLeavingSegment,
+-				),
++			const segment = CodePathSegment.newNext(
++				this.idGenerator.next(),
++				prevSegsOfLeavingSegment,
+ 			);
++
++			segments.push(segment);
++			CodePathSegment.markUsed(segment);
+ 		}
+ 
+ 		this.pushForkContext(true);
