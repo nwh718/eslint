@@ -1,0 +1,46 @@
+diff --git a/lib/rules/no-unreachable.js b/lib/rules/no-unreachable.js
+index 7be94bb3f..2a8c69924 100644
+--- a/lib/rules/no-unreachable.js
++++ b/lib/rules/no-unreachable.js
+@@ -25,12 +25,16 @@ function isInitialized(node) {
+ 
+ /**
+  * Checks all segments in a set and returns true if all are unreachable.
+- * @param {Set<CodePathSegment>} segments The segments to check.
++ * @param {Set<CodePathSegment>|Array<CodePathSegment>|null|undefined} segments The segments to check.
+  * @returns {boolean} True if all segments are unreachable; false otherwise.
+  */
+ function areAllSegmentsUnreachable(segments) {
++	if (!segments) {
++		return true;
++	}
++
+ 	for (const segment of segments) {
+-		if (segment.reachable) {
++		if (segment && segment.reachable) {
+ 			return false;
+ 		}
+ 	}
+diff --git a/lib/rules/utils/code-path-utils.js b/lib/rules/utils/code-path-utils.js
+index 5646466f7..8bef48462 100644
+--- a/lib/rules/utils/code-path-utils.js
++++ b/lib/rules/utils/code-path-utils.js
+@@ -6,12 +6,16 @@
+ 
+ /**
+  * Checks all segments in a set and returns true if any are reachable.
+- * @param {Set<CodePathSegment>} segments The segments to check.
++ * @param {Set<CodePathSegment>|Array<CodePathSegment>|null|undefined} segments The segments to check.
+  * @returns {boolean} `true` if any segment is reachable; `false` otherwise.
+  */
+ function isAnySegmentReachable(segments) {
++	if (!segments) {
++		return false;
++	}
++
+ 	for (const segment of segments) {
+-		if (segment.reachable) {
++		if (segment && segment.reachable) {
+ 			return true;
+ 		}
+ 	}
