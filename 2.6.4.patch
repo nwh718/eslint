@@ -1,0 +1,87 @@
+diff --git a/lib/rules/consistent-return.js b/lib/rules/consistent-return.js
+index 6407739b7..eca8ec3d5 100644
+--- a/lib/rules/consistent-return.js
++++ b/lib/rules/consistent-return.js
+@@ -10,26 +10,12 @@
+ 
+ const astUtils = require("./utils/ast-utils");
+ const { upperCaseFirst } = require("../shared/string-utils");
++const { isAnySegmentReachable } = require("./utils/code-path-utils");
+ 
+ //------------------------------------------------------------------------------
+ // Helpers
+ //------------------------------------------------------------------------------
+ 
+-/**
+- * Checks all segments in a set and returns true if all are unreachable.
+- * @param {Set<CodePathSegment>} segments The segments to check.
+- * @returns {boolean} True if all segments are unreachable; false otherwise.
+- */
+-function areAllSegmentsUnreachable(segments) {
+-	for (const segment of segments) {
+-		if (segment.reachable) {
+-			return false;
+-		}
+-	}
+-
+-	return true;
+-}
+-
+ /**
+  * Checks whether a given node is a `constructor` method in an ES6 class
+  * @param {ASTNode} node A node to check
+@@ -100,7 +86,7 @@ module.exports = {
+ 			 */
+ 			if (
+ 				!funcInfo.hasReturnValue ||
+-				areAllSegmentsUnreachable(funcInfo.currentSegments) ||
++				!isAnySegmentReachable(funcInfo.currentSegments) ||
+ 				astUtils.isES5Constructor(node) ||
+ 				isClassConstructor(node)
+ 			) {
+diff --git a/lib/rules/no-unreachable.js b/lib/rules/no-unreachable.js
+index ddb622ce9..093d9f744 100644
+--- a/lib/rules/no-unreachable.js
++++ b/lib/rules/no-unreachable.js
+@@ -4,12 +4,12 @@
+  */
+ "use strict";
+ 
++const { isAnySegmentReachable } = require("./utils/code-path-utils");
++
+ //------------------------------------------------------------------------------
+ // Helpers
+ //------------------------------------------------------------------------------
+ 
+-const { isAnySegmentReachable } = require("./utils/code-path-utils");
+-
+ /**
+  * @typedef {Object} ConstructorInfo
+  * @property {ConstructorInfo | null} upper Info about the constructor that encloses this constructor.
+@@ -141,7 +141,7 @@ module.exports = {
+ 			if (
+ 				node &&
+ 				(node.type === "PropertyDefinition" ||
+-					!isAnySegmentReachable(currentCodePathSegments))
++				!isAnySegmentReachable(currentCodePathSegments))
+ 			) {
+ 				// Store this statement to distinguish consecutive statements.
+ 				if (range.isEmpty) {
+diff --git a/lib/rules/utils/code-path-utils.js b/lib/rules/utils/code-path-utils.js
+index 31e939dc4..5646466f7 100644
+--- a/lib/rules/utils/code-path-utils.js
++++ b/lib/rules/utils/code-path-utils.js
+@@ -10,12 +10,8 @@
+  * @returns {boolean} `true` if any segment is reachable; `false` otherwise.
+  */
+ function isAnySegmentReachable(segments) {
+-	if (!segments) {
+-		return false;
+-	}
+-
+ 	for (const segment of segments) {
+-		if (segment && segment.reachable) {
++		if (segment.reachable) {
+ 			return true;
+ 		}
+ 	}
