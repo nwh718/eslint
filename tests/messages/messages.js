@@ -387,7 +387,7 @@ Flat config requires "plugins" to be an object, like this:
 	});
 
 	describe("invalid-rule-options", () => {
-		it("should return a more descriptive message for an object value", () => {
+		it("should return a message", () => {
 			const ruleId = "no-undef";
 			const value = { some: "option" };
 			const message = getMessage("invalid-rule-options", {
@@ -397,53 +397,29 @@ Flat config requires "plugins" to be an object, like this:
 
 			assert.include(
 				message,
-				`Configuration for rule "${ruleId}" is invalid. A rule configuration must be one of the following:`,
+				`Configuration for rule "${ruleId}" is invalid.`,
 			);
 			assert.include(
 				message,
-				`- a severity string: "off", "warn", or "error"`,
-			);
-			assert.include(
-				message,
-				`- an array whose first item is the severity and whose remaining items are rule options`,
-			);
-			assert.include(
-				message,
-				`You passed an object value: '{
+				`You passed '{
         "some": "option"
-    }'.`,
+    }', which doesn't contain a valid severity.`,
 			);
 			assert.include(
 				message,
-				`move the options object into an array after the severity`,
-			);
-			assert.include(
-				message,
-				`"${ruleId}": ["error", {
+				`perhaps you meant:
+
+    "${ruleId}": [
+        "error",
+        {
             "some": "option"
-        }]`,
+        }
+    ]`,
 			);
 			assert.include(
 				message,
 				"https://eslint.org/docs/latest/use/configure/rules#use-configuration-files",
 			);
-		});
-
-		it("should return examples for non-object values", () => {
-			const ruleId = "no-undef";
-			const value = true;
-			const message = getMessage("invalid-rule-options", {
-				ruleId,
-				value,
-			});
-
-			assert.include(message, `You passed a boolean value: 'true'.`);
-			assert.include(
-				message,
-				`A boolean value cannot be used directly as a rule configuration because it doesn't specify a severity.`,
-			);
-			assert.include(message, `"${ruleId}": "error"`);
-			assert.include(message, `"${ruleId}": ["error", { ...options }]`);
 		});
 	});
 
