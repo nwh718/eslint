@@ -1,0 +1,24 @@
+diff --git a/lib/shared/segments.js b/lib/shared/segments.js
+index 1037417a8..a36fb4f79 100644
+--- a/lib/shared/segments.js
++++ b/lib/shared/segments.js
+@@ -1,7 +1,9 @@
+ /**
+- * @fileoverview Code segment related utilities.
++ * @fileoverview Common utils for code path segments.
++ *
++ * This file contains only shared items for code path segments.
++ * If you make a utility for rules, please see `../rules/utils/code-path-utils.js`.
+  */
+-
+ "use strict";
+ 
+ /**
+@@ -19,4 +21,6 @@ function isAnySegmentReachable(segments) {
+ 	return false;
+ }
+ 
+-module.exports = { isAnySegmentReachable };
++module.exports = {
++	isAnySegmentReachable,
++};
