@@ -1,0 +1,142 @@
+diff --git a/2.5.3.patc b/2.5.3.patc
+deleted file mode 100644
+index e33b61c75..000000000
+--- a/2.5.3.patc
++++ /dev/null
+@@ -1,13 +0,0 @@
+-diff --git a/run_git.js b/run_git.js
+-new file mode 100644
+-index 000000000..4573680bc
+---- /dev/null
+-+++ b/run_git.js
+-@@ -0,0 +1,6 @@
+-+const { execSync } = require('child_process');
+-+try {
+-+  console.log(execSync('git log -n 5 --oneline', { encoding: 'utf8' }));
+-+} catch (e) {
+-+  console.error(e.message);
+-+}
+-\ No newline at end of file
+diff --git a/lib/rules/array-callback-return.js b/lib/rules/array-callback-return.js
+index 38c90ac98..019a60e84 100644
+--- a/lib/rules/array-callback-return.js
++++ b/lib/rules/array-callback-return.js
+@@ -10,7 +10,7 @@
+ //------------------------------------------------------------------------------
+ 
+ const astUtils = require("./utils/ast-utils");
+-const { isAnySegmentReachable } = require("../shared/segments");
++const { isAnySegmentReachable } = require("./utils/code-path-utils");
+ 
+ //------------------------------------------------------------------------------
+ // Helpers
+diff --git a/lib/rules/getter-return.js b/lib/rules/getter-return.js
+index d9382b152..28c10fa25 100644
+--- a/lib/rules/getter-return.js
++++ b/lib/rules/getter-return.js
+@@ -10,7 +10,7 @@
+ //------------------------------------------------------------------------------
+ 
+ const astUtils = require("./utils/ast-utils");
+-const { isAnySegmentReachable } = require("../shared/segments");
++const { isAnySegmentReachable } = require("./utils/code-path-utils");
+ 
+ //------------------------------------------------------------------------------
+ // Helpers
+diff --git a/lib/rules/no-fallthrough.js b/lib/rules/no-fallthrough.js
+index 844f2d17f..5a2caae0e 100644
+--- a/lib/rules/no-fallthrough.js
++++ b/lib/rules/no-fallthrough.js
+@@ -9,7 +9,7 @@
+ //------------------------------------------------------------------------------
+ 
+ const { directivesPattern } = require("../shared/directives");
+-const { isAnySegmentReachable } = require("../shared/segments");
++const { isAnySegmentReachable } = require("./utils/code-path-utils");
+ 
+ //------------------------------------------------------------------------------
+ // Helpers
+diff --git a/lib/rules/no-unreachable-loop.js b/lib/rules/no-unreachable-loop.js
+index 58192caf3..200da8bd6 100644
+--- a/lib/rules/no-unreachable-loop.js
++++ b/lib/rules/no-unreachable-loop.js
+@@ -5,7 +5,7 @@
+ 
+ "use strict";
+ 
+-const { isAnySegmentReachable } = require("../shared/segments");
++const { isAnySegmentReachable } = require("./utils/code-path-utils");
+ 
+ //------------------------------------------------------------------------------
+ // Helpers
+diff --git a/lib/rules/no-useless-return.js b/lib/rules/no-useless-return.js
+index 77982fa2b..a2f0380d5 100644
+--- a/lib/rules/no-useless-return.js
++++ b/lib/rules/no-useless-return.js
+@@ -10,7 +10,7 @@
+ 
+ const astUtils = require("./utils/ast-utils"),
+ 	FixTracker = require("./utils/fix-tracker");
+-const { isAnySegmentReachable } = require("../shared/segments");
++const { isAnySegmentReachable } = require("./utils/code-path-utils");
+ 
+ //------------------------------------------------------------------------------
+ // Helpers
+diff --git a/lib/rules/utils/code-path-utils.js b/lib/rules/utils/code-path-utils.js
+index 6b6c0d5c4..5646466f7 100644
+--- a/lib/rules/utils/code-path-utils.js
++++ b/lib/rules/utils/code-path-utils.js
+@@ -4,6 +4,19 @@
+ 
+ "use strict";
+ 
+-const { isAnySegmentReachable } = require("../../shared/segments");
++/**
++ * Checks all segments in a set and returns true if any are reachable.
++ * @param {Set<CodePathSegment>} segments The segments to check.
++ * @returns {boolean} `true` if any segment is reachable; `false` otherwise.
++ */
++function isAnySegmentReachable(segments) {
++	for (const segment of segments) {
++		if (segment.reachable) {
++			return true;
++		}
++	}
++
++	return false;
++}
+ 
+ module.exports = { isAnySegmentReachable };
+diff --git a/lib/shared/segments.js b/lib/shared/segments.js
+deleted file mode 100644
+index 42cd67b42..000000000
+--- a/lib/shared/segments.js
++++ /dev/null
+@@ -1,26 +0,0 @@
+-/**
+- * @fileoverview Common utils for code path segments.
+- *
+- * This file contains only shared items for code path segments.
+- * If you make a utility for rules, please see `../rules/utils/code-path-utils.js`.
+- */
+-"use strict";
+-
+-/**
+- * Checks all segments in a set and returns true if any are reachable.
+- * @param {Set<CodePathSegment>} segments The segments to check.
+- * @returns {boolean} `true` if any segment is reachable; `false` otherwise.
+- */
+-function isAnySegmentReachable(segments) {
+-	for (const segment of segments) {
+-		if (segment.reachable) {
+-			return true;
+-		}
+-	}
+-
+-	return false;
+-}
+-
+-module.exports = {
+-	isAnySegmentReachable,
+-};
+\ No newline at end of file
