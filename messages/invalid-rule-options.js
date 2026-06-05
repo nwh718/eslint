@@ -10,7 +10,7 @@ You passed '${stringifyValueForError(value, 4)}', which doesn't contain a valid 
 
 If you're attempting to configure rule options, perhaps you meant:
 
-    "${ruleId}": ${stringifyValueForError(["error", ...(Array.isArray(value) ? value : [value])], 4)}
+    "${ruleId}": ["error", ${stringifyValueForError(value, 8)}]
 
 See https://eslint.org/docs/latest/use/configure/rules#use-configuration-files for configuring rules.
 `.trimStart();

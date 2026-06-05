@@ -1,0 +1,103 @@
+diff --git a/lib/rules/array-callback-return.js b/lib/rules/array-callback-return.js
+index 019a60e84..38c90ac98 100644
+--- a/lib/rules/array-callback-return.js
++++ b/lib/rules/array-callback-return.js
+@@ -10,7 +10,7 @@
+ //------------------------------------------------------------------------------
+ 
+ const astUtils = require("./utils/ast-utils");
+-const { isAnySegmentReachable } = require("./utils/code-path-utils");
++const { isAnySegmentReachable } = require("../shared/segments");
+ 
+ //------------------------------------------------------------------------------
+ // Helpers
+diff --git a/lib/rules/getter-return.js b/lib/rules/getter-return.js
+index 28c10fa25..d9382b152 100644
+--- a/lib/rules/getter-return.js
++++ b/lib/rules/getter-return.js
+@@ -10,7 +10,7 @@
+ //------------------------------------------------------------------------------
+ 
+ const astUtils = require("./utils/ast-utils");
+-const { isAnySegmentReachable } = require("./utils/code-path-utils");
++const { isAnySegmentReachable } = require("../shared/segments");
+ 
+ //------------------------------------------------------------------------------
+ // Helpers
+diff --git a/lib/rules/no-fallthrough.js b/lib/rules/no-fallthrough.js
+index 5a2caae0e..844f2d17f 100644
+--- a/lib/rules/no-fallthrough.js
++++ b/lib/rules/no-fallthrough.js
+@@ -9,7 +9,7 @@
+ //------------------------------------------------------------------------------
+ 
+ const { directivesPattern } = require("../shared/directives");
+-const { isAnySegmentReachable } = require("./utils/code-path-utils");
++const { isAnySegmentReachable } = require("../shared/segments");
+ 
+ //------------------------------------------------------------------------------
+ // Helpers
+diff --git a/lib/rules/no-unreachable-loop.js b/lib/rules/no-unreachable-loop.js
+index 200da8bd6..58192caf3 100644
+--- a/lib/rules/no-unreachable-loop.js
++++ b/lib/rules/no-unreachable-loop.js
+@@ -5,7 +5,7 @@
+ 
+ "use strict";
+ 
+-const { isAnySegmentReachable } = require("./utils/code-path-utils");
++const { isAnySegmentReachable } = require("../shared/segments");
+ 
+ //------------------------------------------------------------------------------
+ // Helpers
+diff --git a/lib/rules/no-useless-return.js b/lib/rules/no-useless-return.js
+index a2f0380d5..77982fa2b 100644
+--- a/lib/rules/no-useless-return.js
++++ b/lib/rules/no-useless-return.js
+@@ -10,7 +10,7 @@
+ 
+ const astUtils = require("./utils/ast-utils"),
+ 	FixTracker = require("./utils/fix-tracker");
+-const { isAnySegmentReachable } = require("./utils/code-path-utils");
++const { isAnySegmentReachable } = require("../shared/segments");
+ 
+ //------------------------------------------------------------------------------
+ // Helpers
+diff --git a/lib/rules/utils/code-path-utils.js b/lib/rules/utils/code-path-utils.js
+index 5646466f7..6b6c0d5c4 100644
+--- a/lib/rules/utils/code-path-utils.js
++++ b/lib/rules/utils/code-path-utils.js
+@@ -4,19 +4,6 @@
+ 
+ "use strict";
+ 
+-/**
+- * Checks all segments in a set and returns true if any are reachable.
+- * @param {Set<CodePathSegment>} segments The segments to check.
+- * @returns {boolean} `true` if any segment is reachable; `false` otherwise.
+- */
+-function isAnySegmentReachable(segments) {
+-	for (const segment of segments) {
+-		if (segment.reachable) {
+-			return true;
+-		}
+-	}
+-
+-	return false;
+-}
++const { isAnySegmentReachable } = require("../../shared/segments");
+ 
+ module.exports = { isAnySegmentReachable };
+diff --git a/messages/invalid-rule-options.js b/messages/invalid-rule-options.js
+index 929bc78c8..506d4c42a 100644
+--- a/messages/invalid-rule-options.js
++++ b/messages/invalid-rule-options.js
+@@ -10,7 +10,7 @@ You passed '${stringifyValueForError(value, 4)}', which doesn't contain a valid
+ 
+ If you're attempting to configure rule options, perhaps you meant:
+ 
+-    "${ruleId}": ${stringifyValueForError(["error", ...(Array.isArray(value) ? value : [value])], 4)}
++    "${ruleId}": ["error", ${stringifyValueForError(value, 8)}]
+ 
+ See https://eslint.org/docs/latest/use/configure/rules#use-configuration-files for configuring rules.
+ `.trimStart();
