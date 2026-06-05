@@ -1,0 +1,137 @@
+diff --git a/messages/invalid-rule-options.js b/messages/invalid-rule-options.js
+index 25dac6e99..d143d2c4d 100644
+--- a/messages/invalid-rule-options.js
++++ b/messages/invalid-rule-options.js
+@@ -3,29 +3,40 @@
+ const { stringifyValueForError } = require("./shared");
+ 
+ module.exports = function ({ ruleId, value }) {
+-	const valueType = Array.isArray(value) ? "array" : typeof value;
+-	const isArray = Array.isArray(value);
+-	
+-	return `
+-Error in rule configuration for "${ruleId}":
++	const valueType =
++		value === null ? "null" : Array.isArray(value) ? "array" : typeof value;
++	const valueDescription = ["array", "object", "undefined"].includes(
++		valueType,
++	)
++		? `an ${valueType}`
++		: `a ${valueType}`;
++	const capitalizedValueDescription = `${valueDescription[0].toUpperCase()}${
++		valueDescription.slice(1)
++	}`;
++	const formattedValue = stringifyValueForError(value, 4);
++	const optionsHint =
++		valueType === "object"
++			? `
++If you're attempting to configure rule options, move the options object into an array after the severity, for example:
++
++    "${ruleId}": ["error", ${stringifyValueForError(value, 8)}]`
++			: `
++Use a severity by itself or place rule options after the severity in an array, for example:
+ 
+-The rule configuration must be one of the following formats:
+-- A severity string: "off", "warn", or "error"
+-- A severity number: 0, 1, or 2
+-- An array: [severity, ...options] where severity is "off"/"warn"/"error" or 0/1/2
++    "${ruleId}": "error"
++    "${ruleId}": ["error", { ...options }]`;
++
++	return `
++Configuration for rule "${ruleId}" is invalid. A rule configuration must be one of the following:
+ 
+-You provided a ${valueType}:
+-${stringifyValueForError(value, 4)}
++- a severity string: "off", "warn", or "error"
++- a severity number: 0, 1, or 2
++- an array whose first item is the severity and whose remaining items are rule options
+ 
+-${isArray 
+-	? `Your array doesn't have a valid severity as the first element. The first element must be "off", 0, "warn", 1, "error", or 2, but you provided: ${stringifyValueForError(value[0], 8)}` 
+-	: `Your ${valueType} cannot be used directly as a rule configuration.`
+-}
++You passed ${valueDescription} value: '${formattedValue}'.
+ 
+-Here are some valid examples:
+-- "${ruleId}": "error"          (just severity)
+-- "${ruleId}": ["warn", { ... }] (severity + options)
++${capitalizedValueDescription} value cannot be used directly as a rule configuration because it doesn't specify a severity.${optionsHint}
+ 
+-See https://eslint.org/docs/latest/use/configure/rules#use-configuration-files for more details.
++See https://eslint.org/docs/latest/use/configure/rules#use-configuration-files for configuring rules.
+ `.trimStart();
+ };
+diff --git a/tests/messages/messages.js b/tests/messages/messages.js
+index dd577a288..5aef8f8cd 100644
+--- a/tests/messages/messages.js
++++ b/tests/messages/messages.js
+@@ -387,7 +387,7 @@ Flat config requires "plugins" to be an object, like this:
+ 	});
+ 
+ 	describe("invalid-rule-options", () => {
+-		it("should return a message", () => {
++		it("should return a more descriptive message for an object value", () => {
+ 			const ruleId = "no-undef";
+ 			const value = { some: "option" };
+ 			const message = getMessage("invalid-rule-options", {
+@@ -397,19 +397,29 @@ Flat config requires "plugins" to be an object, like this:
+ 
+ 			assert.include(
+ 				message,
+-				`Configuration for rule "${ruleId}" is invalid.`,
++				`Configuration for rule "${ruleId}" is invalid. A rule configuration must be one of the following:`,
++			);
++			assert.include(
++				message,
++				`- a severity string: "off", "warn", or "error"`,
+ 			);
+ 			assert.include(
+ 				message,
+-				`You passed '{
++				`- an array whose first item is the severity and whose remaining items are rule options`,
++			);
++			assert.include(
++				message,
++				`You passed an object value: '{
+         "some": "option"
+-    }', which doesn't contain a valid severity.`,
++    }'.`,
+ 			);
+ 			assert.include(
+ 				message,
+-				`perhaps you meant:
+-
+-    "${ruleId}": ["error", {
++				`move the options object into an array after the severity`,
++			);
++			assert.include(
++				message,
++				`"${ruleId}": ["error", {
+             "some": "option"
+         }]`,
+ 			);
+@@ -418,6 +428,23 @@ Flat config requires "plugins" to be an object, like this:
+ 				"https://eslint.org/docs/latest/use/configure/rules#use-configuration-files",
+ 			);
+ 		});
++
++		it("should return examples for non-object values", () => {
++			const ruleId = "no-undef";
++			const value = true;
++			const message = getMessage("invalid-rule-options", {
++				ruleId,
++				value,
++			});
++
++			assert.include(message, `You passed a boolean value: 'true'.`);
++			assert.include(
++				message,
++				`A boolean value cannot be used directly as a rule configuration because it doesn't specify a severity.`,
++			);
++			assert.include(message, `"${ruleId}": "error"`);
++			assert.include(message, `"${ruleId}": ["error", { ...options }]`);
++		});
+ 	});
+ 
+ 	describe("invalid-rule-severity", () => {
