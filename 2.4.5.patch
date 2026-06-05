@@ -1,0 +1,19 @@
+diff --git a/tests/messages/messages.js b/tests/messages/messages.js
+index 88a404349..dd577a288 100644
+--- a/tests/messages/messages.js
++++ b/tests/messages/messages.js
+@@ -409,12 +409,9 @@ Flat config requires "plugins" to be an object, like this:
+ 				message,
+ 				`perhaps you meant:
+ 
+-    "${ruleId}": [
+-        "error",
+-        {
++    "${ruleId}": ["error", {
+             "some": "option"
+-        }
+-    ]`,
++        }]`,
+ 			);
+ 			assert.include(
+ 				message,

@@ -409,12 +409,9 @@ Flat config requires "plugins" to be an object, like this:
 				message,
 				`perhaps you meant:
 
-    "${ruleId}": [
-        "error",
-        {
+    "${ruleId}": ["error", {
             "some": "option"
-        }
-    ]`,
+        }]`,
 			);
 			assert.include(
 				message,
