@@ -1,0 +1,40 @@
+diff --git a/lib/shared/segment-analysis.js b/lib/shared/segment-analysis.js
+index d54211d6f..d2d34dfa3 100644
+--- a/lib/shared/segment-analysis.js
++++ b/lib/shared/segment-analysis.js
+@@ -1,14 +1,5 @@
+-/**
+- * @fileoverview Segment analysis utilities.
+- */
+-
+ "use strict";
+ 
+-/**
+- * Checks all segments in a set and returns true if any are reachable.
+- * @param {Set<CodePathSegment>} segments The segments to check.
+- * @returns {boolean} `true` if any segment is reachable; `false` otherwise.
+- */
+ function isAnySegmentReachable(segments) {
+ 	for (const segment of segments) {
+ 		if (segment.reachable) {
+@@ -19,4 +10,6 @@ function isAnySegmentReachable(segments) {
+ 	return false;
+ }
+ 
+-module.exports = { isAnySegmentReachable };
++module.exports = {
++	isAnySegmentReachable,
++};
+diff --git a/tests/lib/rules/utils/code-path-utils.js b/tests/lib/rules/utils/code-path-utils.js
+index 9539ecb0b..7ee00af1e 100644
+--- a/tests/lib/rules/utils/code-path-utils.js
++++ b/tests/lib/rules/utils/code-path-utils.js
+@@ -11,7 +11,7 @@
+ const assert = require("chai").assert;
+ const {
+ 	isAnySegmentReachable,
+-} = require("../../../../lib/rules/utils/code-path-utils");
++} = require("../../../../lib/shared/segment-analysis");
+ 
+ //------------------------------------------------------------------------------
+ // Tests
