@@ -1,0 +1,174 @@
+diff --git a/lib/rules/no-unreachable.js b/lib/rules/no-unreachable.js
+index 507d3a2d9..ddb622ce9 100644
+--- a/lib/rules/no-unreachable.js
++++ b/lib/rules/no-unreachable.js
+@@ -8,6 +8,8 @@
+ // Helpers
+ //------------------------------------------------------------------------------
+ 
++const { isAnySegmentReachable } = require("./utils/code-path-utils");
++
+ /**
+  * @typedef {Object} ConstructorInfo
+  * @property {ConstructorInfo | null} upper Info about the constructor that encloses this constructor.
+@@ -23,25 +25,6 @@ function isInitialized(node) {
+ 	return Boolean(node.init);
+ }
+ 
+-/**
+- * Checks all segments in a set and returns true if all are unreachable.
+- * @param {Set<CodePathSegment>|Array<CodePathSegment>|null|undefined} segments The segments to check.
+- * @returns {boolean} True if all segments are unreachable; false otherwise.
+- */
+-function areAllSegmentsUnreachable(segments) {
+-	if (!segments) {
+-		return true;
+-	}
+-
+-	for (const segment of segments) {
+-		if (segment && segment.reachable) {
+-			return false;
+-		}
+-	}
+-
+-	return true;
+-}
+-
+ /**
+  * The class to distinguish consecutive unreachable statements.
+  */
+@@ -158,17 +141,20 @@ module.exports = {
+ 			if (
+ 				node &&
+ 				(node.type === "PropertyDefinition" ||
+-					areAllSegmentsUnreachable(currentCodePathSegments))
++					!isAnySegmentReachable(currentCodePathSegments))
+ 			) {
++				// Store this statement to distinguish consecutive statements.
+ 				if (range.isEmpty) {
+ 					range.reset(node);
+ 					return;
+ 				}
+ 
++				// Skip if this statement is inside of the current range.
+ 				if (range.contains(node)) {
+ 					return;
+ 				}
+ 
++				// Merge if this statement is consecutive to the current range.
+ 				if (range.isConsecutive(node)) {
+ 					range.merge(node);
+ 					return;
+@@ -177,6 +163,10 @@ module.exports = {
+ 				nextNode = node;
+ 			}
+ 
++			/*
++			 * Report the current range since this statement is reachable or is
++			 * not consecutive to the current range.
++			 */
+ 			if (!range.isEmpty) {
+ 				context.report({
+ 					messageId: "unreachableCode",
+@@ -185,10 +175,12 @@ module.exports = {
+ 				});
+ 			}
+ 
++			// Update the current range.
+ 			range.reset(nextNode);
+ 		}
+ 
+ 		return {
++			// Manages the current code path.
+ 			onCodePathStart() {
+ 				codePathSegments.push(currentCodePathSegments);
+ 				currentCodePathSegments = new Set();
+@@ -214,6 +206,7 @@ module.exports = {
+ 				currentCodePathSegments.add(segment);
+ 			},
+ 
++			// Registers for all statement nodes (excludes FunctionDeclaration).
+ 			BlockStatement: reportIfUnreachable,
+ 			BreakStatement: reportIfUnreachable,
+ 			ClassDeclaration: reportIfUnreachable,
+@@ -231,6 +224,7 @@ module.exports = {
+ 			SwitchStatement: reportIfUnreachable,
+ 			ThrowStatement: reportIfUnreachable,
+ 			TryStatement: reportIfUnreachable,
++
+ 			VariableDeclaration(node) {
+ 				if (
+ 					node.kind !== "var" ||
+@@ -239,14 +233,21 @@ module.exports = {
+ 					reportIfUnreachable(node);
+ 				}
+ 			},
++
+ 			WhileStatement: reportIfUnreachable,
+ 			WithStatement: reportIfUnreachable,
+ 			ExportNamedDeclaration: reportIfUnreachable,
+ 			ExportDefaultDeclaration: reportIfUnreachable,
+ 			ExportAllDeclaration: reportIfUnreachable,
++
+ 			"Program:exit"() {
+ 				reportIfUnreachable();
+ 			},
++
++			/*
++			 * Instance fields defined in a subclass are never created if the constructor of the subclass
++			 * doesn't call `super()`, so their definitions are unreachable code.
++			 */
+ 			"MethodDefinition[kind='constructor']"() {
+ 				constructorInfo = {
+ 					upper: constructorInfo,
+@@ -255,8 +256,10 @@ module.exports = {
+ 			},
+ 			"MethodDefinition[kind='constructor']:exit"(node) {
+ 				const { hasSuperCall } = constructorInfo;
++
+ 				constructorInfo = constructorInfo.upper;
+ 
++				// skip typescript constructors without the body
+ 				if (!node.value.body) {
+ 					return;
+ 				}
+diff --git a/lib/rules/utils/code-path-utils.js b/lib/rules/utils/code-path-utils.js
+index 8bef48462..31e939dc4 100644
+--- a/lib/rules/utils/code-path-utils.js
++++ b/lib/rules/utils/code-path-utils.js
+@@ -6,7 +6,7 @@
+ 
+ /**
+  * Checks all segments in a set and returns true if any are reachable.
+- * @param {Set<CodePathSegment>|Array<CodePathSegment>|null|undefined} segments The segments to check.
++ * @param {Set<CodePathSegment>} segments The segments to check.
+  * @returns {boolean} `true` if any segment is reachable; `false` otherwise.
+  */
+ function isAnySegmentReachable(segments) {
+diff --git a/tests/lib/rules/utils/code-path-utils.js b/tests/lib/rules/utils/code-path-utils.js
+index 634800243..9539ecb0b 100644
+--- a/tests/lib/rules/utils/code-path-utils.js
++++ b/tests/lib/rules/utils/code-path-utils.js
+@@ -24,11 +24,6 @@ describe("isAnySegmentReachable", () => {
+ 		assert.strictEqual(isAnySegmentReachable(segments), false);
+ 	});
+ 
+-	it("should return false for nullish segments", () => {
+-		assert.strictEqual(isAnySegmentReachable(), false);
+-		assert.strictEqual(isAnySegmentReachable(null), false);
+-	});
+-
+ 	it("should return true when a single segment is reachable", () => {
+ 		const segments = new Set([{ reachable: true }]);
+ 
+@@ -58,10 +53,4 @@ describe("isAnySegmentReachable", () => {
+ 
+ 		assert.strictEqual(isAnySegmentReachable(segments), true);
+ 	});
+-
+-	it("should ignore null segments in arrays", () => {
+-		const segments = [null, { reachable: false }, { reachable: true }];
+-
+-		assert.strictEqual(isAnySegmentReachable(segments), true);
+-	});
+ });

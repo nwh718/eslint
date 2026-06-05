@@ -24,11 +24,6 @@ describe("isAnySegmentReachable", () => {
 		assert.strictEqual(isAnySegmentReachable(segments), false);
 	});
 
-	it("should return false for nullish segments", () => {
-		assert.strictEqual(isAnySegmentReachable(), false);
-		assert.strictEqual(isAnySegmentReachable(null), false);
-	});
-
 	it("should return true when a single segment is reachable", () => {
 		const segments = new Set([{ reachable: true }]);
 
@@ -55,12 +50,6 @@ describe("isAnySegmentReachable", () => {
 
 	it("should return true when at least one segment is reachable", () => {
 		const segments = new Set([{ reachable: false }, { reachable: true }]);
-
-		assert.strictEqual(isAnySegmentReachable(segments), true);
-	});
-
-	it("should ignore null segments in arrays", () => {
-		const segments = [null, { reachable: false }, { reachable: true }];
 
 		assert.strictEqual(isAnySegmentReachable(segments), true);
 	});
