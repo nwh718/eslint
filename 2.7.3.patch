@@ -1,0 +1,100 @@
+diff --git a/lib/rules/consistent-return.js b/lib/rules/consistent-return.js
+index 6407739b7..9965884c4 100644
+--- a/lib/rules/consistent-return.js
++++ b/lib/rules/consistent-return.js
+@@ -10,26 +10,12 @@
+ 
+ const astUtils = require("./utils/ast-utils");
+ const { upperCaseFirst } = require("../shared/string-utils");
++const { isAnySegmentReachable } = require("../shared/segment-analysis");
+ 
+ //------------------------------------------------------------------------------
+ // Helpers
+ //------------------------------------------------------------------------------
+ 
+-/**
+- * Checks all segments in a set and returns true if all are unreachable.
+- * @param {Set<CodePathSegment>} segments The segments to check.
+- * @returns {boolean} True if all segments are unreachable; false otherwise.
+- */
+-function areAllSegmentsUnreachable(segments) {
+-	for (const segment of segments) {
+-		if (segment.reachable) {
+-			return false;
+-		}
+-	}
+-
+-	return true;
+-}
+-
+ /**
+  * Checks whether a given node is a `constructor` method in an ES6 class
+  * @param {ASTNode} node A node to check
+@@ -100,7 +86,7 @@ module.exports = {
+ 			 */
+ 			if (
+ 				!funcInfo.hasReturnValue ||
+-				areAllSegmentsUnreachable(funcInfo.currentSegments) ||
++				!isAnySegmentReachable(funcInfo.currentSegments) ||
+ 				astUtils.isES5Constructor(node) ||
+ 				isClassConstructor(node)
+ 			) {
+diff --git a/lib/rules/no-unreachable.js b/lib/rules/no-unreachable.js
+index 7be94bb3f..971034921 100644
+--- a/lib/rules/no-unreachable.js
++++ b/lib/rules/no-unreachable.js
+@@ -4,6 +4,8 @@
+  */
+ "use strict";
+ 
++const { isAnySegmentReachable } = require("../shared/segment-analysis");
++
+ //------------------------------------------------------------------------------
+ // Helpers
+ //------------------------------------------------------------------------------
+@@ -23,21 +25,6 @@ function isInitialized(node) {
+ 	return Boolean(node.init);
+ }
+ 
+-/**
+- * Checks all segments in a set and returns true if all are unreachable.
+- * @param {Set<CodePathSegment>} segments The segments to check.
+- * @returns {boolean} True if all segments are unreachable; false otherwise.
+- */
+-function areAllSegmentsUnreachable(segments) {
+-	for (const segment of segments) {
+-		if (segment.reachable) {
+-			return false;
+-		}
+-	}
+-
+-	return true;
+-}
+-
+ /**
+  * The class to distinguish consecutive unreachable statements.
+  */
+@@ -154,7 +141,7 @@ module.exports = {
+ 			if (
+ 				node &&
+ 				(node.type === "PropertyDefinition" ||
+-					areAllSegmentsUnreachable(currentCodePathSegments))
++					!isAnySegmentReachable(currentCodePathSegments))
+ 			) {
+ 				// Store this statement to distinguish consecutive statements.
+ 				if (range.isEmpty) {
+diff --git a/lib/shared/segment-analysis.js b/lib/shared/segment-analysis.js
+index d2d34dfa3..e821f36e8 100644
+--- a/lib/shared/segment-analysis.js
++++ b/lib/shared/segment-analysis.js
+@@ -1,5 +1,10 @@
+ "use strict";
+ 
++/**
++ * Checks all segments in a set and returns true if any are reachable.
++ * @param {Set<CodePathSegment>} segments The segments to check.
++ * @returns {boolean} `true` if any segment is reachable; `false` otherwise.
++ */
+ function isAnySegmentReachable(segments) {
+ 	for (const segment of segments) {
+ 		if (segment.reachable) {
