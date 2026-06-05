@@ -1,0 +1,78 @@
+diff --git a/lib/rules/array-callback-return.js b/lib/rules/array-callback-return.js
+index 8f8708580..019a60e84 100644
+--- a/lib/rules/array-callback-return.js
++++ b/lib/rules/array-callback-return.js
+@@ -10,7 +10,7 @@
+ //------------------------------------------------------------------------------
+ 
+ const astUtils = require("./utils/ast-utils");
+-const { isAnySegmentReachable } = require("../shared/segment-analysis");
++const { isAnySegmentReachable } = require("./utils/code-path-utils");
+ 
+ //------------------------------------------------------------------------------
+ // Helpers
+diff --git a/lib/rules/getter-return.js b/lib/rules/getter-return.js
+index 687863c81..28c10fa25 100644
+--- a/lib/rules/getter-return.js
++++ b/lib/rules/getter-return.js
+@@ -10,7 +10,7 @@
+ //------------------------------------------------------------------------------
+ 
+ const astUtils = require("./utils/ast-utils");
+-const { isAnySegmentReachable } = require("../shared/segment-analysis");
++const { isAnySegmentReachable } = require("./utils/code-path-utils");
+ 
+ //------------------------------------------------------------------------------
+ // Helpers
+diff --git a/lib/rules/no-fallthrough.js b/lib/rules/no-fallthrough.js
+index aede08d8b..5a2caae0e 100644
+--- a/lib/rules/no-fallthrough.js
++++ b/lib/rules/no-fallthrough.js
+@@ -9,7 +9,7 @@
+ //------------------------------------------------------------------------------
+ 
+ const { directivesPattern } = require("../shared/directives");
+-const { isAnySegmentReachable } = require("../shared/segment-analysis");
++const { isAnySegmentReachable } = require("./utils/code-path-utils");
+ 
+ //------------------------------------------------------------------------------
+ // Helpers
+diff --git a/lib/rules/no-unreachable-loop.js b/lib/rules/no-unreachable-loop.js
+index 5a228c54e..200da8bd6 100644
+--- a/lib/rules/no-unreachable-loop.js
++++ b/lib/rules/no-unreachable-loop.js
+@@ -5,7 +5,7 @@
+ 
+ "use strict";
+ 
+-const { isAnySegmentReachable } = require("../shared/segment-analysis");
++const { isAnySegmentReachable } = require("./utils/code-path-utils");
+ 
+ //------------------------------------------------------------------------------
+ // Helpers
+diff --git a/lib/rules/no-useless-return.js b/lib/rules/no-useless-return.js
+index 21a73443d..a2f0380d5 100644
+--- a/lib/rules/no-useless-return.js
++++ b/lib/rules/no-useless-return.js
+@@ -10,7 +10,7 @@
+ 
+ const astUtils = require("./utils/ast-utils"),
+ 	FixTracker = require("./utils/fix-tracker");
+-const { isAnySegmentReachable } = require("../shared/segment-analysis");
++const { isAnySegmentReachable } = require("./utils/code-path-utils");
+ 
+ //------------------------------------------------------------------------------
+ // Helpers
+diff --git a/tests/lib/rules/utils/code-path-utils.js b/tests/lib/rules/utils/code-path-utils.js
+index 7ee00af1e..9539ecb0b 100644
+--- a/tests/lib/rules/utils/code-path-utils.js
++++ b/tests/lib/rules/utils/code-path-utils.js
+@@ -11,7 +11,7 @@
+ const assert = require("chai").assert;
+ const {
+ 	isAnySegmentReachable,
+-} = require("../../../../lib/shared/segment-analysis");
++} = require("../../../../lib/rules/utils/code-path-utils");
+ 
+ //------------------------------------------------------------------------------
+ // Tests

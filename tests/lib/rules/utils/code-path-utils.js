@@ -11,7 +11,7 @@
 const assert = require("chai").assert;
 const {
 	isAnySegmentReachable,
-} = require("../../../../lib/shared/segment-analysis");
+} = require("../../../../lib/rules/utils/code-path-utils");
 
 //------------------------------------------------------------------------------
 // Tests
