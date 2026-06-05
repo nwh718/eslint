@@ -1,0 +1,13 @@
+diff --git a/run_git.js b/run_git.js
+new file mode 100644
+index 000000000..4573680bc
+--- /dev/null
++++ b/run_git.js
+@@ -0,0 +1,6 @@
++const { execSync } = require('child_process');
++try {
++  console.log(execSync('git log -n 5 --oneline', { encoding: 'utf8' }));
++} catch (e) {
++  console.error(e.message);
++}
+\ No newline at end of file

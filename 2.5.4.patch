@@ -1,0 +1,24 @@
+diff --git a/lib/shared/segments.js b/lib/shared/segments.js
+index a36fb4f79..42cd67b42 100644
+--- a/lib/shared/segments.js
++++ b/lib/shared/segments.js
+@@ -23,4 +23,4 @@ function isAnySegmentReachable(segments) {
+ 
+ module.exports = {
+ 	isAnySegmentReachable,
+-};
++};
+\ No newline at end of file
+diff --git a/run_git.js b/run_git.js
+deleted file mode 100644
+index 4573680bc..000000000
+--- a/run_git.js
++++ /dev/null
+@@ -1,6 +0,0 @@
+-const { execSync } = require('child_process');
+-try {
+-  console.log(execSync('git log -n 5 --oneline', { encoding: 'utf8' }));
+-} catch (e) {
+-  console.error(e.message);
+-}
+\ No newline at end of file
